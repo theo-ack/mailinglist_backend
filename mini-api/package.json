@@ -4,9 +4,9 @@
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
-  "start": "node index.ts",
-  "dev": "nodemon --exec ts-node index.ts"
-},
+    "start": "node index.ts",
+    "dev": "nodemon --exec ts-node index.ts"
+  },
   "keywords": [],
   "author": "Kian Luetke",
   "license": "ISC",

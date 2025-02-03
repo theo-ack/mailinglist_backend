@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { API_KEY } from "./constants";
 
+
 export function authMiddleware(req: Request, res: Response, next: NextFunction) {
   const apiKey = req.headers["x-api-key"];
   if (apiKey && apiKey === API_KEY) {
