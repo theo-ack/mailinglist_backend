@@ -2,11 +2,11 @@
   "type": "module",
   "name": "mini-api",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
-    "start": "node index.js",
-    "dev": "node --watch index.js"
-  },
+  "start": "node index.ts",
+  "dev": "nodemon --exec ts-node index.ts"
+},
   "keywords": [],
   "author": "Kian Luetke",
   "license": "ISC",
@@ -15,7 +15,9 @@
     "express": "^4.21.2"
   },
   "devDependencies": {
-    "@types/node": "^22.13.0"
+    "@types/node": "^22.13.0",
+    "nodemon": "^3.1.9",
+    "ts-node": "^10.9.2"
   },
   "description": ""
 }

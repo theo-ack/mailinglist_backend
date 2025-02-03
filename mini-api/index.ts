@@ -1,7 +1,7 @@
 import { readFile } from "fs/promises";
 import express from "express";
 import bodyParser from "body-parser";
-import { errorMiddleware } from "./middleware";
+import { errorMiddleware } from "./middleware.";
 import productRoutes from "./routes/product-routes";
 
 const app = express();

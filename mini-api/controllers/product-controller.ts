@@ -1,5 +1,4 @@
 import { readFile, writeFile } from "fs/promises";
-import Product from "../models/product-model.js";
 
 type Subscriber = {
   id: number;
