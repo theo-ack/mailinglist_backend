@@ -1,0 +1,64 @@
+{
+  "newsletter_1": {
+    "newsletter": "Hier ist unser neuester Newsletter mit spannenden Updates!",
+    "subscribers": [
+      {
+        "id": 1,
+        "name": "Max",
+        "lastname": "Mustermann",
+        "mail": "max@example.com",
+        "phone": "+49123456789"
+      },
+      {
+        "id": 2,
+        "name": "Erika",
+        "lastname": "Musterfrau",
+        "mail": "erika@example.com",
+        "phone": "+49111222333"
+      }
+    ]
+  },
+  "newsletter_2": {
+    "newsletter": "Zweiter Newsletter - Neuigkeiten im Februar!",
+    "subscribers": [
+      {
+        "id": 3,
+        "name": "John",
+        "lastname": "Doe",
+        "mail": "john.doe@example.com",
+        "phone": "+49155667788"
+      }
+    ]
+  },
+  "newsletter_3": {
+    "newsletter": "Dritter Newsletter - Neues im Frühling!",
+    "subscribers": [
+      {
+        "id": 4,
+        "name": "Alice",
+        "lastname": "Müller",
+        "mail": "alice@example.com",
+        "phone": "+49123456701"
+      },
+      {
+        "id": 5,
+        "name": "Bob",
+        "lastname": "Schmidt",
+        "mail": "bob@example.com",
+        "phone": "+49123456702"
+      }
+    ]
+  },
+  "newsletter_4": {
+    "newsletter": "Vierter Newsletter - Sommer Angebote!",
+    "subscribers": [
+      {
+        "id": 6,
+        "name": "Clara",
+        "lastname": "Schneider",
+        "mail": "clara@example.com",
+        "phone": "+49123456703"
+      }
+    ]
+  }
+}

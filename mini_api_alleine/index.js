@@ -1,170 +1,128 @@
 import express from "express";
 import bodyParser from "body-parser";
+import { readFile, writeFile } from "fs/promises";
 
 const app = express();
 const PORT = 3000;
 
-// Body Parser Middleware
+// Middleware für JSON-Parsing
 app.use(bodyParser.json());
 
-// Errorhandling from bodyparser here:
+// 🔹 Fehlerhandling für ungültige JSON-Anfragen
 function errorMiddleware(err, req, res, next) {
   if (err.name === "SyntaxError") {
-    return res.json({
-      error: err.message,
-      code: 400,
+    return res.status(400).json({ error: "❌ Ungültiges JSON-Format" });
+  }
+  next();
+}
+app.use(errorMiddleware);
+
+// 🔹 Funktion zum Lesen der Datenbank mit Fehlerhandling
+async function readDb() {
+  try {
+    const data = await readFile("./store/db.json", "utf-8");
+    return JSON.parse(data);
+  } catch (error) {
+    console.error("⚠️ Fehler beim Lesen der Datenbank:", error);
+    return { newsletter: "Noch kein Newsletter vorhanden", subscribers: [] };
+  }
+}
+
+// 🔹 Funktion zum Schreiben in die Datenbank
+async function writeDb(data) {
+  try {
+    await writeFile("./store/db.json", JSON.stringify(data, null, 2));
+  } catch (error) {
+    console.error("⚠️ Fehler beim Speichern der Datenbank:", error);
+  }
+}
+
+// 📩 **Newsletter abrufen**
+app.get("/newsletters", async (req, res) => {
+  const db = await readDb();
+  // Alle Newsletter-Objekte abrufen
+  const newsletters = Object.values(db).map((newsletter) => ({
+    newsletter: newsletter.newsletter,
+    subscribers: newsletter.subscribers,
+  }));
+  return res.json({ newsletters });
+});
+
+//bestimten newsletter abrufen
+app.get("/newsletter/:newsletterId", async (req, res) => {
+  const { newsletterId } = req.params;
+  const db = await readDb();
+
+  // Prüfen, ob der Newsletter existiert
+  if (!db[newsletterId]) {
+    return res.status(404).json({ error: "Newsletter nicht gefunden" });
+  }
+
+  return res.json({
+    newsletter: db[newsletterId].newsletter,
+    subscribers: db[newsletterId].subscribers,
+  });
+});
+
+// ✍ **Newsletter aktualisieren**
+app.put("/newsletter", async (req, res) => {
+  const { newsletter } = req.body;
+  if (!newsletter) {
+    return res
+      .status(400)
+      .json({ error: "⚠️ Bitte den Newsletter-Text angeben" });
+  }
+
+  const db = await readDb();
+  db.newsletter = newsletter;
+  await writeDb(db);
+  res.json({ message: "✅ Newsletter aktualisiert", newsletter });
+});
+
+// 📋 **Alle Abonnenten abrufen**
+app.get("/subscribers", async (req, res) => {
+  const db = await readDb();
+  return res.json({ subscribers: db.subscribers });
+});
+
+// ➕ **Neuen Abonnenten hinzufügen**
+app.post("/subscribe", async (req, res) => {
+  const { name, lastname, mail, phone } = req.body;
+
+  if (!name || !lastname || !mail || !phone) {
+    return res.status(400).json({
+      error: "⚠️ Bitte alle Felder ausfüllen (name, lastname, mail, phone)",
     });
   }
 
-  next();
-}
+  const db = await readDb();
 
-app.use(errorMiddleware);
-
-// Temporäre Datenbank (in-memory)
-let products = [
-  {
-    id: 1,
-    name: "Nike Airforce 1",
-    description: "Tolles paar Schuhe",
-    price: 89.99,
-  },
-  {
-    id: 2,
-    name: "Dell XPS 13 2024",
-    description: "Leistungsstarker Laptop",
-    price: 1899.99,
-  },
-  {
-    id: 3,
-    name: "Apple iPhone 13",
-    description: "Neuestes iPhone",
-    price: 999.99,
-  },
-  {
-    id: 4,
-    name: "Apple Watch Series 7",
-    description: "Smartwatch von Apple",
-    price: 399.99,
-  },
-  {
-    id: 5,
-    name: "Sony WH-1000XM4",
-    description: "Noise Cancelling Kopfhörer",
-    price: 349.99,
-  },
-  {
-    id: 6,
-    name: "Nintendo Switch",
-    description: "Spielekonsole von Nintendo",
-    price: 299.99,
-  },
-  {
-    id: 7,
-    name: "Sony A7 III",
-    description: "Spiegellose Vollformatkamera",
-    price: 1799.99,
-  },
-  {
-    id: 8,
-    name: "Logitech MX Master 3",
-    description: "Kabellose Maus",
-    price: 99.99,
-  },
-  {
-    id: 9,
-    name: "Bose QuietComfort 45",
-    description: "Noise Cancelling Kopfhörer",
-    price: 329.99,
-  },
-  {
-    id: 10,
-    name: "Samsung Galaxy S21",
-    description: "Smartphone von Samsung",
-    price: 799.99,
-  },
-];
-
-// Endpunkte für die Produkte
-
-// GET /products - Alle Produkte abrufen
-
-app.get("/products", (req, res) => {
-  return res.json({ data: products });
-});
-
-// GET /products/:id - Ein bestimmtes Produkt abrufen
-app.get("/products/:id", (req, res) => {
-  const productId = parseInt(req.params.id);
-  const product = products.find((p) => p.id === productId);
-
-  if (!product) {
-    return res.status(404).json({ error: "Produkt nicht gefunden" });
-  }
-
-  return res.json({ data: product });
-});
-
-// POST /products - Neues Produkt erstellen
-app.post("/products", (req, res) => {
-  // validiere die Eingabe
-  if (!req.body.name || !req.body.description || !req.body.price) {
+  // Prüfen, ob die E-Mail bereits existiert
+  if (db.subscribers.some((sub) => sub.mail === mail)) {
     return res
-      .status(400)
-      .json({
-        error: "Bitte fülle alle Felder aus (name, description, price)",
-      });
+      .status(409)
+      .json({ error: "⚠️ Diese E-Mail ist bereits abonniert" });
   }
 
-  const { name, description, price } = req.body;
-
-  const newProduct = {
-    id: products.length + 1,
+  const newSubscriber = {
+    id:
+      db.subscribers.length > 0
+        ? Math.max(...db.subscribers.map((s) => s.id)) + 1
+        : 1,
     name,
-    description,
-    price,
+    lastname,
+    mail,
+    phone,
   };
 
-  products.push(newProduct);
-  res.status(201).json({ data: newProduct });
+  db.subscribers.push(newSubscriber);
+  await writeDb(db);
+  res
+    .status(201)
+    .json({ message: "✅ Abonnent gespeichert", subscriber: newSubscriber });
 });
 
-// PUT /products/:id - Ein Produkt aktualisieren
-app.put("/products/:id", (req, res) => {
-  const productId = parseInt(req.params.id);
-  const product = products.find((p) => p.id === productId);
-
-  // Product validation - guard clause
-  if (!product)
-    return res.status(404).json({ error: "Produkt nicht gefunden" });
-  // validiere die Eingabe
-  if (!req.body.name || !req.body.description || !req.body.price)
-    return res
-      .status(400)
-      .json({
-        error: "Bitte fülle alle Felder aus (name, description, price)",
-      });
-
-  product.name = req.body.name;
-  product.description = req.body.description;
-  product.price = req.body.price;
-  return res.json({ data: product });
-});
-
-// DELETE /products/:id - Ein Produkt löschen
-app.delete("/products/:id", (req, res) => {
-  const productId = parseInt(req.params.id);
-  const productIndex = products.findIndex((p) => p.id === productId);
-
-  if (productIndex === -1) {
-    return res.status(404).json({ error: "Produkt nicht gefunden" });
-  }
-
-  products.splice(productIndex, 1);
-  return res.status(204).send();
-});
-
-// Server starten
+// 🔥 **Server starten**
 app.listen(PORT, () => {
-  console.log(`Server läuft auf http://localhost:${PORT}`);
+  console.log(`✅ Server läuft auf http://localhost:${PORT}`);
 });
