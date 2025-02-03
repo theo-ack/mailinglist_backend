@@ -10,7 +10,6 @@ import { authMiddleware } from "../middleware.js";
 const router = express.Router();
 
 router.get("/", getAllProducts);
-router.get("/:id", getProductById);
 router.post("/", authMiddleware, createProduct);
 router.update("/:id", authMiddleware, updateProduct);
 

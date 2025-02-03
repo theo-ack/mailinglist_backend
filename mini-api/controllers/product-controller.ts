@@ -1,4 +1,4 @@
-import { readFile } from "fs/promises";
+import { readFile, writeFile } from "fs/promises";
 import Product from "../models/product-model.js";
 
 type Subscriber = {
@@ -6,6 +6,7 @@ type Subscriber = {
   name: string;
   lastname: string;
   mail: string;
+  phone: number;
 };
 
 type DbData = {
@@ -15,11 +16,13 @@ type DbData = {
 
 const DB_PATH = "store/db.json";
 
-export const getAllProducts = (req, res) => {
-  (async () => {
+export const getAllSubscribers = async (req, res) => {
+  try {
     const dbdata = await readFromDb();
-    return dbdata;
-  })();
+    res.json({ data: dbdata.subscribers });
+  } catch (error) {
+    res.status(500).json({ error: "Fehler beim Abrufen der Abonnenten" });
+  }
 };
 
 async function readFromDb() {
@@ -28,51 +31,63 @@ async function readFromDb() {
   return parsedData;
 }
 
-export const getProductById = (req, res) => {
-  const product = Product.findById(parseInt(req.params.id));
-  if (product) {
-    res.json({ data: product });
-  } else {
-    res.status(404).json({ error: "Produkt nicht gefunden" });
+export const createSubscriber = async (req, res) => {
+  try {
+    const { name, lastname, mail, phone } = req.body;
+
+    if (!name || !lastname || !mail || !phone) {
+      return res.status(400).json({
+        error: "Bitte fülle alle Felder aus (name, lastName, email, phone)",
+      });
+    }
+
+    const dbdata = await readFromDb();
+    const newSubscriber: Subscriber = {
+      id: dbdata.subscribers.length + 1,
+      name,
+      lastname,
+      mail,
+      phone,
+    };
+
+    dbdata.subscribers.push(newSubscriber);
+    await writeFile(DB_PATH, JSON.stringify(dbdata, null, 2));
+
+    res.status(201).json({ data: newSubscriber });
+  } catch (error) {
+    res.status(500).json({ error: "Fehler beim Erstellen des Abonnenten" });
   }
 };
 
-export const createProduct = (req, res) => {
-  const { name, description, price } = req.body;
-  if (!name || !description || price == null) {
-    return res.status(400).json({
-      error: "Bitte fülle alle Felder aus (name, description, price)",
-    });
-  }
-  const newProduct = Product.create({ name, description, price });
-  res.status(201).json({ data: newProduct });
-};
+export const updateSubscriber = async (req, res) => {
+  try {
+    const { name, lastname, mail, phone } = req.body;
+    if (!name || !lastname || !mail || !phone) {
+      return res.status(400).json({
+        error: "Bitte fülle alle Felder aus (name, lastName, email, phone)",
+      });
+    }
 
-export const updateProduct = (req, res) => {
-  const { name, description, price } = req.body;
-  if (!name || !description || price == null) {
-    return res.status(400).json({
-      error: "Bitte fülle alle Felder aus (name, description, price)",
-    });
-  }
+    const dbdata = await readFromDb();
+    const subscriberIndex = dbdata.subscribers.findIndex(
+      (s) => s.id === parseInt(req.params.id)
+    );
 
-  const updatedProduct = Product.update(parseInt(req.params.id), {
-    name,
-    description,
-    price,
-  });
-  if (updatedProduct) {
-    res.json({ data: updatedProduct });
-  } else {
-    res.status(404).json({ error: "Produkt nicht gefunden" });
-  }
-};
+    if (subscriberIndex === -1) {
+      return res.status(404).json({ error: "Abonnent nicht gefunden" });
+    }
 
-export const deleteProduct = (req, res) => {
-  const deletedProduct = Product.delete(parseInt(req.params.id));
-  if (deletedProduct) {
-    res.status(204).send();
-  } else {
-    res.status(404).json({ error: "Produkt nicht gefunden" });
+    dbdata.subscribers[subscriberIndex] = {
+      id: parseInt(req.params.id),
+      name,
+      lastname,
+      mail,
+      phone,
+    };
+    await writeFile(DB_PATH, JSON.stringify(dbdata, null, 2));
+
+    res.json({ data: dbdata.subscribers[subscriberIndex] });
+  } catch (error) {
+    res.status(500).json({ error: "Fehler beim Aktualisieren des Abonnenten" });
   }
 };
