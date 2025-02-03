@@ -36,17 +36,4 @@ export async function getSubscribers(req: Request, res: Response) {
   res.json({ subscribers: dbData.subscribers });
 }
 
-/** 🔹 Abonnenten entfernen (DELETE) */
-export async function removeSubscriber(req: Request, res: Response) {
-  const id = parseInt(req.params.id);
-  const dbData = await readFromDb();
 
-  const index = dbData.subscribers.findIndex(sub => sub.id === id);
-  if (index === -1) {
-    return res.status(404).json({ error: "⚠️ Abonnent nicht gefunden" });
-  }
-
-  const removedSubscriber = dbData.subscribers.splice(index, 1);
-  await writeToDb(dbData);
-  res.json({ message: "✅ Abonnent entfernt", removedSubscriber });
-}
