@@ -1,13 +1,12 @@
 {
-    "newsletter": "naninana",
-    "subscribers":[
-    {
+    "newsletter": "Hier kommt dein neuester Newsletter!",
+    "subscribers": [
+      {
         "id": 1,
-        "name": "KIan",
-        "lastName": "acker",
-        "email": "iudqhcic",
-        "phone": 12345
-
-    }
-]
+        "name": "Max",
+        "lastname": "Mustermann",
+        "mail": "max@example.com",
+        "phone": "+49123456789"
+      }
+    ]
 }

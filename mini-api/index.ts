@@ -1,21 +1,21 @@
-import { readFile } from "fs/promises";
 import express from "express";
 import bodyParser from "body-parser";
-import { errorMiddleware } from "./middleware.";
-import productRoutes from "./routes/product-routes";
+import { errorMiddleware } from "./middleware";
+import subscriberRoutes from "./routes/subscribers-routes";
+import newsletterRoutes from "./routes/newsletter-routes";
 
 const app = express();
 const PORT = 3000;
 
-// Middleware
+// 📌 Middleware
 app.use(bodyParser.json());
 app.use(errorMiddleware);
 
-// Produkt-Routen
-app.use("/products", productRoutes);
-app.use("/public", productRoutes);
+// 📌 API-Routen
+app.use("/api", subscriberRoutes);
+app.use("/api", newsletterRoutes);
 
-// Server starten
+// 📌 Server starten
 app.listen(PORT, () => {
-  console.log(`Server läuft auf http://localhost:${PORT}`);
+  console.log(`✅ Server läuft auf http://localhost:${PORT}`);
 });
